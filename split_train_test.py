@@ -2,7 +2,7 @@
 from optparse import OptionParser
 from functools import reduce
 from random import shuffle
-import sys
+import sys, os
 
 def get_opts():
     parser = OptionParser()
@@ -51,6 +51,9 @@ def take_percentage(lines, perc):
 def to_file(in_filename, header, lines, ext):
     if len(lines) == 0:
         return
+    # Make splits directory
+    if not os.path.exists("./splits"):
+        os.makedirs("./splits")
     orig_ext = in_filename[in_filename.index("."):]
     out_file = "splits/" + in_filename[:in_filename.index(".")] + ext + orig_ext
     with open(out_file, 'w') as f:
@@ -63,10 +66,10 @@ def run():
     with open(options.file, 'r') as f:
         lines = [line for line in f]
         header = None
-        shuffle(lines)
         if options.has_header:
             header = lines[0]
             lines = lines[1:]
+        shuffle(lines)
         tr_num = split_num_to_int(options.train_split)
         d_num = split_num_to_int(options.dev_split)
         t_num = split_num_to_int(options.test_split)

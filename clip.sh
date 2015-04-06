@@ -1,3 +1,3 @@
 #!/bin/bash
 RES=$($@)
-echo "$RES" | xclip -sel clip
+echo "$RES" | tr -d "\n" | xclip -sel clip

@@ -1,0 +1,16 @@
+#!/bin/bash
+BASEDIR="/home/testbrian"
+FILES=$(ldd $1 | awk '{ print $3 }' |egrep -v ^'\(')
+for i in $FILES
+do
+    d="$BASEDIR$(dirname $i)"
+    f="$(basename $i)"
+    if [ ! -d "$d" ]; then
+        mkdir -p "$d"
+    fi
+
+    # Copy all the files
+    echo "cp \"$i\" \"$d/$f\""
+    cp "$i" "$d/$f"
+done
+
