@@ -1,0 +1,28 @@
+#!/bin/bash
+
+DETAIL_INDEX=11
+DETAIL_ENTRIES=("$DETAIL_INDEX")
+until [[ !(-z $response) ]]; do 
+    CUT_ENTRIES=$(printf ",%s" "${DETAIL_ENTRIES[@]}")
+    CUT_ENTRIES=${CUT_ENTRIES:1}
+
+    SELECTED_PROCESSES="$(ps aux | grep -e "$1" | grep -v "grep" | grep -v "/bin/bash $0 $1" | tr -s " " | cut -d " " -f 1,2,$CUT_ENTRIES | sed -e 's/^/    /')"
+    if [[ -z $SELECTED_PROCESSES ]]; then
+        echo "Nothing to kill"
+        exit 0
+    fi
+
+    echo "Kill all?"
+    echo "$SELECTED_PROCESSES"
+
+    read response
+    if [[ "$response" == "y" ]]; then
+        kill -9 $(echo "$SELECTED_PROCESSES" | tr -s " " | cut -d " " -f 3)
+        break
+    elif [[ "$response" == "n" ]]; then
+        break
+    else
+        DETAIL_INDEX=$((DETAIL_INDEX+1))
+        DETAIL_ENTRIES+=("$DETAIL_INDEX")
+    fi
+done
