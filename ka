@@ -2,25 +2,46 @@
 
 DETAIL_INDEX=11
 DETAIL_ENTRIES=("$DETAIL_INDEX")
-until [[ !(-z $response) ]]; do 
+until [[ "$response" == "y" || "$response" == "n" ]]; do 
     CUT_ENTRIES=$(printf ",%s" "${DETAIL_ENTRIES[@]}")
     CUT_ENTRIES=${CUT_ENTRIES:1}
 
-    SELECTED_PROCESSES="$(ps aux | grep -e "$1" | grep -v "grep" | grep -v "/bin/bash $0 $1" | tr -s " " | cut -d " " -f 1,2,$CUT_ENTRIES | sed -e 's/^/    /')"
+    SELECTED_PROCESSES="$(ps aux | grep -e "$1" | grep -v "grep" | grep -v "/bin/bash $0 $1" | tr -s " " | cut -d " " -f 1,2,$CUT_ENTRIES)"
+    NUMBERED_PROCESSES=()
+    IFS=$'\n' read -rd '' -a SPLIT_PROCESSES <<<"$SELECTED_PROCESSES"
+    TAB=$(echo -e "\t")
+    for i in "${!SPLIT_PROCESSES[@]}"; do
+        NUMBERED_PROCESSES+=("${TAB}[$i] ${SPLIT_PROCESSES[$i]}")
+    done
+
     if [[ -z $SELECTED_PROCESSES ]]; then
         echo "Nothing to kill"
         exit 0
     fi
 
     echo "Kill all?"
-    echo "$SELECTED_PROCESSES"
+    for i in "${!NUMBERED_PROCESSES[@]}"; do
+        echo "${NUMBERED_PROCESSES[$i]}"
+    done
 
     read response
+    NUMERIC=$(echo "$response" | grep -Eo "[0-9]+( [0-9]+)*")
     if [[ "$response" == "y" ]]; then
         kill -9 $(echo "$SELECTED_PROCESSES" | tr -s " " | cut -d " " -f 3)
         break
     elif [[ "$response" == "n" ]]; then
         break
+    elif [[ !(-z "$response") ]]; then
+        IFS=$' ' read -rd '' -a SPLIT_IDS <<<"$(echo "$NUMERIC" | tr -s " ")"
+        for i in "${!NUMBERED_PROCESSES[@]}"; do
+            PROCESS_TAG=$(echo "${NUMBERED_PROCESSES[$i]}" | grep -oE "\[[0-9]+\]" | grep -oE "[0-9]+")
+            for j in "${!SPLIT_IDS[@]}"; do
+                if [[ "${SPLIT_IDS[$j]}" -eq "$PROCESS_TAG" ]]; then
+                    PID=$(echo "${NUMBERED_PROCESSES[$i]}" | tr -s " " | cut -d " " -f 3)
+                    kill -9 $PID
+                fi
+            done
+        done
     else
         DETAIL_INDEX=$((DETAIL_INDEX+1))
         DETAIL_ENTRIES+=("$DETAIL_INDEX")
