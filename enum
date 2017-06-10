@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Read opts
+AMOUNT_OF_DETAIL=80
+while getopts "ed:" opt; do
+    case "$opt" in
+    d)
+        AMOUNT_OF_DETAIL=$OPTARG
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+
+# Read all piped input
+LINES=()
+while read LINE; do 
+    LINES+=("$LINE")
+done
+
+if [[ -z $LINES ]]; then
+    # Exit early because there is nothing to do 
+    >&2 echo "Nothing to enumerate"
+    exit 1
+fi
+
+TAB=$(echo -e "\t")
+# Start printing output enumerated with tags
+until [[ "$RESPONSE" == "a" || "$response" == "q" ]]; do
+        
+    for i in "${!LINES[@]}"; do
+        if [[ "$AMOUNT_OF_DETAIL" == "-1" ]]; then
+            TRUNCATED_LINE=${LINES[$i]}
+        else
+            TRUNCATED_LINE=$(echo "${LINES[$i]}" | cut -c -${AMOUNT_OF_DETAIL})
+        fi
+        >&2 echo "${TAB}[$i] $TRUNCATED_LINE"
+    done
+
+    read RESPONSE </dev/tty
+    NUMERIC=$(echo "$RESPONSE" | grep -Eo "[0-9]+( [0-9]+)*")
+    if [[ "$RESPONSE" == "a" ]]; then
+        for line in "${LINES[@]}"; do
+            echo "$line"
+        done
+        exit 1
+    elif [[ "$RESPONSE" == "q" ]]; then
+        exit 1
+    elif [[ !(-z "$RESPONSE") ]]; then
+        for i in "${!LINES[@]}"; do
+            if [[ "$i" == "$NUMERIC" ]]; then
+                echo "${LINES[$i]}"
+                exit 0
+            fi
+        done
+    else
+        AMOUNT_OF_DETAIL=$((AMOUNT_OF_DETAIL+20))
+    fi
+done
