@@ -1,4 +1,10 @@
 #!/bin/bash
+# usage: ka search_pattern
+
+if [[ "$#" -eq "0" ]]; then
+    echo "usage: ka search_pattern"
+    exit 1
+fi
 
 DETAIL_INDEX=11
 DETAIL_ENTRIES=("$DETAIL_INDEX")
@@ -27,7 +33,7 @@ until [[ "$response" == "y" || "$response" == "n" ]]; do
     read response
     NUMERIC=$(echo "$response" | grep -Eo "[0-9]+( [0-9]+)*")
     if [[ "$response" == "y" ]]; then
-        kill -9 $(echo "$SELECTED_PROCESSES" | tr -s " " | cut -d " " -f 3)
+        kill -9 $(echo "$SELECTED_PROCESSES" | tr -s " " | cut -d " " -f 2)
         break
     elif [[ "$response" == "n" ]]; then
         break
