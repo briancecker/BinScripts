@@ -1,5 +1,5 @@
 #!/bin/bash
 
 set -e
-BRANCH=$(git branch | grep "$@" | enum)
+BRANCH=$(git branch | grep "$(echo "$@" | tr "[:upper:]" "[:lower:]")" | enum)
 git checkout $BRANCH
