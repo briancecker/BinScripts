@@ -12,7 +12,7 @@ until [[ "$response" == "y" || "$response" == "n" ]]; do
     CUT_ENTRIES=$(printf ",%s" "${DETAIL_ENTRIES[@]}")
     CUT_ENTRIES=${CUT_ENTRIES:1}
 
-    SELECTED_PROCESSES="$(ps aux | grep -e "$1" | grep -v "grep" | grep -v "/bin/bash $0 $1" | tr -s " " | cut -d " " -f 1,2,$CUT_ENTRIES)"
+    SELECTED_PROCESSES="$(ps aux | grep -ie "$1" | grep -v "grep" | grep -v "/bin/bash $0 $1" | tr -s " " | cut -d " " -f 1,2,$CUT_ENTRIES)"
     NUMBERED_PROCESSES=()
     IFS=$'\n' read -rd '' -a SPLIT_PROCESSES <<<"$SELECTED_PROCESSES"
     TAB=$(echo -e "\t")
